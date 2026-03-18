@@ -11,4 +11,3 @@ main.pdf: main.tex references.bib
 
 clean:
 	rm -f main.pdf main.aux main.log main.out main.bbl main.blg
-	git checkout main.tex references.bib
