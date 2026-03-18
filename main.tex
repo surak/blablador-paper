@@ -1,0 +1,301 @@
+\documentclass[10pt,conference]{IEEEtran}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{todonotes}
+
+\usetikzlibrary{positioning}
+
+\definecolor{lightgray}{RGB}{220,220,220}
+\definecolor{lightblue}{RGB}{173,216,230}
+\definecolor{lightyellow}{RGB}{255,255,224}
+
+\title{Blablador: A Privacy-Focused LLM Inference Server for Scientific Research}
+
+\author{
+    \IEEEauthorblockN{Alexandre Strube}
+    \IEEEauthorblockA{Helmholtz AI, Juelich Supercomputing Centre \\
+    Email: a.strube@fz-juelich.de}
+\and    
+    \IEEEauthorblockN{Stefan Kesselheim}
+    \IEEEauthorblockA{Helmholtz AI, Juelich Supercomputing Centre \\
+    Email: s.kesselheim@fz-juelich.de}
+\and    
+    \IEEEauthorblockN{Peter Steinbach}
+    \IEEEauthorblockA{Helmholtz AI, Helmholtz-Zentrum Dresden-Rossendorf\\
+    Email: p.steinbach@hzdr.de}
+}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper introduces Blablador, a Large Language Model (LLM) inference server developed by the Helmholtz Foundation operated at Forschungszentrum Jülich. Blablador is designed to meet the unique needs of the scientific community, offering privacy-preserving features, API accessibility, and support for custom models. In this article, we discuss its architecture, capabilities, and potential impact on AI research for all scientific domains.
+\end{abstract}
+
+\section{Introduction}
+
+Large Language Models (LLMs) have emerged as transformative tools in the landscape of artificial intelligence and scientific research. These models, exemplified by GPT-3 \cite{brockman2020openai}, PaLM \cite{JMLR:v24:22-1144}, and BERT \cite{devlin2018bert}, have demonstrated remarkable capabilities in natural language understanding and generation, leading to their adoption across diverse scientific disciplines. 
+
+LLMs have found applications in various domains, including:
+
+\begin{itemize}
+    \item \textbf{Bioinformatics:} Protein structure prediction \cite{jumper2021highly} and genomic sequence analysis \cite{ji2021dnabert}.
+    \item \textbf{Chemistry:} Molecular property prediction and drug discovery \cite{vatansever2021artificial}.
+    \item \textbf{Climate Science:} Climate model interpretation and extreme event prediction \cite{kochkov2024neural}.
+    \item \textbf{Astrophysics:} Celestial object classification and anomaly detection \cite{10578402}.
+\end{itemize}
+
+Albeit equipped with astonishing capabilities, LLMs have been found to expose detrimental performance in reasoning tasks \cite{nezhurina2024alicewonderlandsimpletasks}. Moreover, severe doubts have been raised that their cognitive abilities emergent after training could be only due to the way humans interact with them \cite{lu2024emergentabilitieslargelanguage}.
+%PS we could continue this enumeration
+
+In this tension between opportunities and failures, the scientific community faces several challenges in effectively leveraging these models:
+
+\begin{enumerate}
+    \item \textbf{Limited Access:} State-of-the-art LLMs are often proprietary or require significant computational resources, limiting their accessibility to many researchers.
+    
+    \item \textbf{Privacy Concerns:} Many existing LLM platforms log user interactions, raising concerns about data confidentiality, especially when working with sensitive or unpublished research.
+    
+    \item \textbf{Computational Constraints:} Running large-scale LLMs requires substantial computational power, which may not be available to all research institutions.
+    
+    \item \textbf{Integration Difficulties:} Incorporating LLMs into existing research workflows and software stacks can be technically challenging and time-consuming.
+    
+    \item \textbf{Model Customization:} Researchers often need to fine-tune or adapt models for domain-specific tasks, which is not always supported by general-purpose LLM platforms.
+\end{enumerate}
+
+To address these challenges, the Helmholtz Foundation has developed Blablador, an LLM inference server specifically designed for scientific research. 
+
+\section{Motivation}
+
+Blablador is accessible at \url{https://helmholtz-blablador.fz-juelich.de} to ensure democratic access by researches across a variety of institutions and scientific domains. The system offers a unique set of features tailored to the needs of the research community:
+
+\begin{itemize}
+    \item \textbf{Privacy-First Approach:} Blablador does not record or store any user conversations or data, ensuring the confidentiality of research queries and results.
+    
+    \item \textbf{API Accessibility:} A robust API allows seamless integration with existing research code and workflows, facilitating programmatic access to LLM capabilities.
+    
+    \item \textbf{Custom Model Support:} Helmholtz members can submit their own LLMs to be run on Blablador, enabling research on novel architectures and domain-specific models.
+    
+    \item \textbf{Distributed Infrastructure:} Blablador operates permanently on a cluster with 18 GPUs, and newer models are evaluated on additional resources from the Jülich Supercomputing Centre (JSC).
+    
+    \item \textbf{Open Collaboration:} Based on and built in partnership with LM-Sys, creators of the Alpaca model, Blablador leverages the open-source FastChat \cite{zheng2023judging} infrastructure to promote transparency and community-driven development.
+\end{itemize}
+
+This paper presents a comprehensive overview of Blablador, detailing its architecture, key features, and potential applications in scientific research. We discuss the system's performance characteristics, scalability, and future directions. By providing a privacy-focused, accessible, and flexible LLM platform, Blablador aims to accelerate AI-driven scientific discovery across the Helmholtz Foundation and the broader research community.
+
+In the following sections, we present the technical details of Blablador's implementation, explore its research applications, and discuss its implications for open science and collaborative AI development and benchmarking. Through this work, we demonstrate how targeted infrastructure development can address critical needs in the scientific community and pave the way for more accessible, privacy-preserving AI tools in research.
+
+\section{System Architecture}
+
+Blablador follows a classic Model-View-Controller (MVC) architecture, adapted for the unique requirements of an LLM inference server. This design pattern provides a clear separation of concerns, enhancing maintainability and scalability. Figure \ref{fig:architecture} illustrates the high-level architecture and connections between components.
+
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=2cm, auto]
+    % Multiple instances container
+    \node[rectangle, draw, dashed, rounded corners, minimum width=3cm, minimum height=2cm] (Multiple) at (0,4.5) {};
+    \node[above] at (Multiple.north) {Worker[s] with gpus};
+    
+    % Models
+    \node[rectangle, draw, fill=lightgray, minimum width=2cm, minimum height=1cm] (LLM) at (0,4.5) {LLM Models};
+    
+    % Cloud container
+    \node[rectangle, draw, dashed, rounded corners, minimum width=7cm, minimum height=3cm] (Cloud) at (0,-0.2) {};
+    \node[above] at (Cloud.north east) {Cloud Instance};
+    
+    % Controller
+    \node[rectangle, draw, fill=lightblue, minimum width=2cm, minimum height=1cm] (Controller) at (0,0.5) {Controller};
+    
+    % Views
+    \node[rectangle, draw, fill=lightyellow, minimum width=2cm, minimum height=1cm, below left=0.5cm and 0.1cm of Controller] (WebInterface) {Web Interface};
+    \node[rectangle, draw, fill=lightyellow, minimum width=2cm, minimum height=1cm, below right=0.5cm and 0.1cm of Controller] (APIEndpoint) {API Endpoint};
+    
+    % User figure (simple stick figure)
+    % PS: there is a latex package for fontawesome -> https://github.com/xdanaux/fontawesome-latex
+    %     \usepackage{fontawesome}
+    %     if you like, you could replace the User node by: 
+    %     \node[below =1cm of WebInterface] (User) {\faGroup};
+    %     preview: https://fontawesome.com/v5/icons/users?f=classic&s=solid
+    \node[below =1cm of WebInterface] (User) {
+        \begin{tikzpicture}
+            \draw (0,0) circle (0.1); % Head
+            \draw (0,-0.1) -- (0,-0.5); % Body
+            \draw (0,-0.5) -- (-0.2,-0.8); % Left leg
+            \draw (0,-0.5) -- (0.2,-0.8); % Right leg
+            \draw (0,-0.3) -- (-0.2,-0.1); % Left arm
+            \draw (0,-0.3) -- (0.2,-0.1); % Right arm
+        \end{tikzpicture}
+    };
+    \node[below=0.1cm of User] {User};
+    
+    % Computer figure (simple monitor)
+    % PS: see the fontawesome icon for laptop \node[below=1.3cm of APIEndpoint] (Computer) {\faLaptop};
+    %     preview https://fontawesome.com/v5/icons/laptop?f=classic&s=solid
+    \node[below=1.3cm of APIEndpoint] (Computer) {
+        \begin{tikzpicture}
+            \draw (-0.3,-0.2) rectangle (0.3,0.2); % Monitor
+            \draw (-0.2,-0.2) -- (-0.1,-0.3) -- (0.1,-0.3) -- (0.2,-0.2); % Stand
+        \end{tikzpicture}
+    };
+    \node[below=0.22cm of Computer] {Computer code};
+    
+    % Connections
+    \draw[->] (Controller) -- (LLM) node[midway, left] {Manages};
+    \draw[->] (WebInterface) -- (Controller) node[midway, left] {Requests};
+    \draw[->] (APIEndpoint) -- (Controller) node[midway, right] {Requests};
+    \draw[->] (Controller) -- (WebInterface) node[midway, left] {};
+    \draw[->] (Controller) -- (APIEndpoint) node[midway, right] {};
+    \draw[->] (User) -- (WebInterface) node[midway, right] {Accesses};
+    \draw[->] (Computer) -- (APIEndpoint) node[midway, left] {Connects};
+\end{tikzpicture}
+\caption{Blablador System Architecture}
+\label{fig:architecture}
+\end{figure}
+
+The system is entirely implemented in Python, leveraging its rich ecosystem of libraries and frameworks for machine learning and web development. The key components of the architecture are:
+
+\subsection{Model Workers}
+The Model in Blablador's architecture comprises the LLMs themselves. These can include:
+\begin{itemize}
+    \item Pre-trained models provided by the Helmholtz Foundation,
+    \item Open-Source models from Huggingface,    
+    \item Models from external inference servers integrated into Blablador.
+\end{itemize}
+
+The first two run on Blablador's own cluster. Models from external inference servers, while already possible, are not yet allowed for security reasons. This will change with the ongoing implementation of authentication features and changes in firewall policies, both currently ongoing.
+
+The LLMs are responsible for processing input prompts and generating appropriate responses based on their training. They run as \emph{workers}, each taking one or more GPUs. Those can be deployed independently from the rest of the system. Most of Blablador's models run either on an internal cluster called \emph{haicluster} or in one of Jülich's supercomputers, but this is not a requirement: technically, any Helmholtz researcher should be able to point their model to Blablador, once the firewall allows it.
+
+\subsection{View}
+Blablador offers two primary views for user interaction:
+
+\subsubsection{Web Interface}
+The web interface is developed using the Gradio toolkit, which provides a user-friendly, interactive front-end for direct engagement with the LLMs. Gradio's flexibility allows for rapid prototyping and easy customization of the user interface.
+
+\subsubsection{API Endpoint}
+The API endpoint serves as the programmatic interface to Blablador. It is designed to be compatible with OpenAI's Python package and API, facilitating easy integration for researchers already familiar with OpenAI's ecosystem. The API endpoint is available at the default port 8000, mirroring OpenAI's GPT API \cite{brockman2020openai} servers for consistency and ease of use.
+
+\subsection{Controller}
+The Controller acts as the central orchestrator of Blablador, managing the flow of data and requests between the Models and Views. Its responsibilities include:
+
+\begin{itemize}
+    \item LLM Management: Loading, unloading, and switching between different language models.
+    \item Request Handling: Processing incoming requests from both the web interface and API endpoint.
+    \item Response Generation: Coordinating with the appropriate LLM to generate responses.
+    \item Load Balancing: Distributing requests across available GPU resources for optimal performance.
+    \item Error Handling: Managing and reporting any issues that arise during processing.
+\end{itemize}
+
+The Controller ensures that regardless of whether a request comes through the web interface or API endpoint, it is processed efficiently and the appropriate model is invoked.
+
+\subsection{System Workflow}
+A typical request in Blablador follows this path:
+
+\begin{enumerate}
+    \item A user submits a prompt through either the web interface or API endpoint.
+    \item The View (web interface or API) forwards the request to the Controller.
+    \item The Controller selects the appropriate LLM based on the request parameters.
+    \item The chosen LLM processes the prompt and generates a response.
+    \item The Controller receives the response from the LLM and sends it back to the appropriate View.
+    \item The View presents the response to the user, either through the web interface or as an API response.
+\end{enumerate}
+
+This architecture allows Blablador to maintain a clear separation of concerns while providing a flexible and scalable platform for LLM inference. The use of Python throughout the stack ensures consistency and leverages the language's strong support for machine learning and web technologies.
+\section{Key Features}
+\subsection{Privacy-Preserving Design}
+While the system uses the Helmholtz Authentication and authorization infrastructure in order to prevent bots and potentially bad actors, the usernames themselves are never collected or logged. An addition to it, interactions with the models are also not recorded.
+This is important for users with unpublished research, or not-yet-granted patents, for example.
+
+For the API Endpoint server, an API Token must be generated at the Helmholtz Codebase's Gitlab Server\cite{helmholtzcodebase}. This ensures that only authorized users are able to access Blablador via API.
+
+\subsection{API Endpoint Server}
+Blablador provides a FastApi-based \cite{FastAPI} API, compatible with the one from OpenAI, so text-based codes using the OpenAI API can, for the most part, point the endpoint to Blablador's server, and use Blablador's resources instead of that from OpenAI. The main difference is that one should use the \emph{apiKey} with the API Token from Helmholtz Cloud.
+
+\subsection{Benefits for programming and research with LLMs}
+\begin{itemize}
+    \item Both as using blablador as a tool, like making questions, summarizing, translation, etc\todo[fancyline]{Expand}
+    \item And using it to do research on LLMs' replies, reasoning etc
+\end{itemize}
+
+
+\subsection{Custom Model Support}
+There are two possible ways to add a model to blablador: 
+\begin{itemize}
+\item Scientists from the Helmholtz Association can request Blablador's administrators to keep their models running long-term, according to GPU availability, and
+\item Connect their own inference server to Blablador. A process to allow any Helhmholtz scientist to plug their own inference instance to Blablador's controller is in the works. It will use the same authentication system as the API does, with additional security measures.
+\end{itemize}
+
+An example of a model produced by a scientist and running permanently on Blablador is \emph{Cosmosage} \cite{dehaan2024cosmosagenaturallanguageassistantcosmologists}. While not directly from the Helmholtz Association, this model was chosen as an example of a well-maintained model for scientific purposes. It has been constantly improved, and it is currently on its third incarnation on Blablador. 
+
+\section{User Interface and Accessibility}
+\begin{itemize}
+    \item Description of the web interface
+    \item API documentation and usage examples
+\end{itemize}
+
+\section{Research Applications}
+\subsection{Potential use cases in various scientific domains}\todo[fancyline]{TODO}
+\subsection{Examples of ongoing research projects using Blablador}
+\subsubsection{Models provided and running on Blablador}
+\begin{itemize}
+    \item Cosmosage, one of the models permanently running in Blablador, has been improved using Blablador itself. Cosmosage's developer uses the inference capabilities of Blablador to perform long-term evaluation, for example.
+\end{itemize}
+
+\subsubsection{Research using Blablador's endpoint}
+\begin{itemize}
+    \item Peter
+    \item Dima
+    \item etcaps.goo
+\end{itemize}
+
+    \todo{Add more cases here}
+
+\subsection{Interaction with the community}
+
+    Most of the interactions with users are either done in-person, in scientific conferences, or via e-mail. Blablador has been shown in about a dozen conferences throughout Europe, and being well-regarded as a solution of great interest by the scientific community in General. 
+
+    This has resulted in both Blablador's source code being forked and adopted in other institutions, as well as similar solutions being developed in-house by some organizations. Many of those decide to go to their own development for diverse reasons; either as a matter of policy by the institution, or by the sheer desire of re-implementing things their own way.
+
+
+\section{Performance and Scalability}
+\begin{itemize}
+    \item Benchmarks and performance metrics\todo[fancyline, color=red,shadow]{@Peter?}
+    \item Scalability with additional JSC resources\todo[fancyline]{Still todo - Jureca-wai?}
+\end{itemize}
+
+\section{Caveats}
+
+\todo[fancyline]{Still todo}
+\begin{itemize}
+    \item Libraries change constantly - it's as much effort as development
+    \item New models need new versions of libraries daily
+    \item Things like Sqlite3 giving I/O errors when it's a networked file system are confusing and misleading. Had to go to the source code out `outlines` to figure where it was trying to write its cache
+\end{itemize}
+
+\section{Collaboration and Open Science}
+\subsection{Partnership with LM-Sys}
+    Blablador began as a modest experiment on running one of the many LLM inference engines locally. Eventually, this evolved into a proper fork of LM-Sys' FastChat, until the point that I started pushing fixes back to FastChat. Today, I do bug triage on FastChat and contributing with my own patches to it.
+\subsection{Contribution to the open-source AI community}
+    Besides the contributions back to FastChat, the source code of Blablador with its own unique features is available at \emph{https://github.com/HelmholtzAI-FZJ/FastChat}, under the Apache 2.0 license.
+
+\section{Future Directions}
+\subsection{Planned features and improvements}
+    The main selling point of Blablador for the Helmholtz Association is its hard privacy features. Every new feature has to take privacy-first into account.
+
+    One of the most-sought features planned is with regard feeding full documents to Blablador's web interface and make questions about them. This usually implies in uploading a document to a server, which is not desirable. A solution where the document is fed into an in-user-device OCR and database for Retrieaval-Augmnented-Gerneration (RAG) is being investigated. While this would still imply in data from the document being sent to Blablador's servers, this would always be done via the already established encrypted channels, and no document file would ever stay on our servers.
+\subsection{Long-term vision for Blablador in scientific research}
+\todo[fancyline]{Dunno :-)}
+
+\section{Conclusion}
+\begin{itemize}
+\item Summary of Blablador's impact on AI research in the scientific community\todo{everything}
+\item Call to action for researchers to engage with the platform
+\end{itemize}
+
+\bibliographystyle{IEEEtran}
+\bibliographystyle{ieeetr}
+\bibliography{references}
+
+\end{document}
