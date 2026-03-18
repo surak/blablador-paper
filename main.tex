@@ -77,14 +77,14 @@ Blablador is accessible at \url{https://helmholtz-blablador.fz-juelich.de} (clas
     
     \item \textbf{Multi-Infrastructure Deployment:} Blablador operates across 66 GPUs on three different infrastructures:
     \begin{itemize}
-        \item \textbf{Haicluster:} Since 2022, 3 bare-metal nodes with 16x RTX 3090 24GB, managed by Slurm + Easybuild + vLLM. Described as "stable AF" by the operator.
+        \item \textbf{Haicluster:} Since 2022, 3 bare-metal nodes with 16x RTX 3090 24GB, managed by Slurm + Easybuild + vLLM. Stable, but given the age, it's being phased out.
         \item \textbf{Jureca-DC West AI:} 4 nodes with 4x H100 80GB each, used primarily for experiments with giant models. Production has been phased out here due to downtime issues.
         \item \textbf{JSC Cloud:} Kubernetes-based infrastructure with A100, RTX A6000, V100, L40s, and H100 GPUs. All relevant models run here, steadily improving in stability.
     \end{itemize}
     
     \item \textbf{Model Diversity:} A mix of small, fast models and large, slower ones. Models are selected based on benchmark performance (LM Arena, etc.), community feedback, licensing considerations, and cost-quality tradeoffs. New models are constantly evaluated and added.
     
-    \item \textbf{Agentic Workflows:} Blablador serves as the LLM backend for coding agents (OpenClaw, OpenCode, n8n, Continue.dev) via API. This has driven significant API usage growth and positions Blablador at the center of the agentic coding revolution.
+    \item \textbf{Agentic Workflows:} Blablador serves as the LLM backend for coding agents (OpenClaw, OpenCode, n8n, Continue.dev, and user-defined code) via API. This has driven significant API usage growth and positions Blablador at the center of the agentic coding revolution.
     
     \item \textbf{Open Source Heritage:} Originally forked from FastChat (LM-Sys) in 2022, Blablador today is maintained by a small team with active contributions back to the FastChat project and integration with Synapse, the Helmholtz AI router.
 \end{itemize}
@@ -98,7 +98,7 @@ In the following sections, we present the technical details of Blablador's imple
 Blablador has evolved significantly from its origins as a FastChat fork. The current architecture consists of multiple components working together:
 
 \begin{itemize}
-    \item \textbf{Synapse Router:} A Go-based high-performance router developed by Helmholtz AI with contributions from NISL and Tsinghua University \cite{synapse}. It handles authentication, rate limiting, and efficient load balancing across model instances.
+    \item \textbf{Synapse Router:} A Go-based high-performance router developed NISL and Tsinghua University \cite{synapse} with contributions from Helmholtz AI. It handles authentication, rate limiting, and efficient load balancing across model instances.
     \item \textbf{vLLM Model Serving:} High-performance LLM inference engine \cite{vllm} for efficient model serving with PagedAttention for memory optimization.
     \item \textbf{Kubernetes Infrastructure:} Cloud-native deployment on JSC Cloud for scalable model serving.
     \item \textbf{Slurm-Based Clusters:} Bare-metal clusters for specialized workloads.
