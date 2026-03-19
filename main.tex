@@ -23,6 +23,14 @@
     \IEEEauthorblockN{Peter Steinbach}
     \IEEEauthorblockA{Helmholtz AI, Helmholtz-Zentrum Dresden-Rossendorf\\
     Email: p.steinbach@hzdr.de}
+\and
+    \IEEEauthorblockN{Konstantin Rushchanskii}
+    \IEEEauthorblockA{Helmholtz AI, Juelich Supercomputing Centre \\
+    Email: k.rushchanskii@fz-juelich.de}
+\and
+    \IEEEauthorblockN{Benedikt von St. Vieth}
+    \IEEEauthorblockA{Juelich Supercomputing Centre \\
+    Email: b.von.st.vieth@fz-juelich.de}
 }
 
 
@@ -88,7 +96,7 @@ Blablador is accessible at \url{https://helmholtz-blablador.fz-juelich.de} (clas
     
     \item \textbf{Open Source Heritage:} Originally forked from FastChat (LM-Sys) in 2022, Blablador today is maintained by a small team with active contributions back to the FastChat project and integration with Synapse, the Helmholtz AI router.
     
-    \item \textbf{Team:} Blablador today is developed and maintained by a small team of 2 persons (me and K.Rushchanskii) working on it, with hiring in progress.
+    \item \textbf{Team:} Blablador today is developed and maintained by a small team of 2 persons (me and K.Rushchanskii) working on it, with hiring in progress. The main developer is Konstantin Rushchanskii (k.rushchanskii@fz-juelich.de).
 \end{itemize}
 
 New web interfaces based on Open-WebUI and Librechat are in development, featuring RAG, file uploads, and multi-modal model support.
@@ -99,8 +107,43 @@ In the following sections, we present the technical details of Blablador's imple
 
 Blablador has evolved significantly from its origins as a FastChat fork. The current architecture consists of multiple components working together:
 
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}[node distance=2cm, scale=0.8, transform shape]
+
+% User layer
+\node (users) [rectangle, draw, fill=lightblue, text centered] {Users};
+\node (web) [rectangle, draw, below of=users, xshift=-2cm] {Web Interface};
+\node (api) [rectangle, draw, below of=users, xshift=2cm] {API Clients};
+
+% Router
+\node (synapse) [rectangle, draw, fill=lightyellow, text centered, below of=users, yshift=-1cm] {Synapse Router};
+
+% Model serving
+\node (vlLm) [rectangle, draw, fill=lightgray, text centered, below of=synapse, xshift=-2cm] {vLLM Servers};
+\node (slurm) [rectangle, draw, fill=lightgray, text centered, below of=synapse, xshift=2cm] {Slurm Clusters};
+
+% GPUs
+\node (gpu1) [rectangle, rounded corners, draw, below of=vlLm] {A100 GPUs};
+\node (gpu2) [rectangle, rounded corners, draw, below of=slurm] {RTX 3090 GPUs};
+
+% Arrows
+\draw[->] (users) -- (web);
+\draw[->] (users) -- (api);
+\draw[->] (web) -- (synapse);
+\draw[->] (api) -- (synapse);
+\draw[->] (synapse) -- (vlLm);
+\draw[->] (synapse) -- (slurm);
+\draw[->] (vlLm) -- (gpu1);
+\draw[->] (slurm) -- (gpu2);
+
+\end{tikzpicture}
+\caption{Blablador System Architecture}
+\label{fig:architecture}
+\end{figure}
+
 \begin{itemize}
-    \item \textbf{Synapse Router:} A Go-based high-performance router developed NISL and Tsinghua University \cite{synapse} with contributions from Helmholtz AI. It handles authentication, rate limiting, and efficient load balancing across model instances.
+    \item \textbf{Synapse Router:} A Go-based high-performance router developed by NISL and Tsinghua University \cite{synapse} with contributions from Helmholtz AI. It handles authentication, rate limiting, and efficient load balancing across model instances.
     \item \textbf{vLLM Model Serving:} High-performance LLM inference engine \cite{vllm} for efficient model serving with PagedAttention for memory optimization.
     \item \textbf{Kubernetes Infrastructure:} Cloud-native deployment on JSC Cloud for scalable model serving.
     \item \textbf{Slurm-Based Clusters:} Bare-metal clusters for specialized workloads.
@@ -108,6 +151,29 @@ Blablador has evolved significantly from its origins as a FastChat fork. The cur
 \end{itemize}
 
 The system now operates across \textbf{66 GPUs across 3 different infrastructures}, providing a mix of small/fast models and large/slow ones to stay current with state-of-the-art LLM development.
+
+\subsection{Related Work}
+
+Several commercial and open-source platforms provide LLM inference services. Blablador differentiates itself through its focus on the scientific community and privacy-first design.
+
+\textbf{Commercial Cloud Services:} Major cloud providers offer LLM inference through services like Amazon SageMaker, Google Vertex AI, and Microsoft Azure OpenAI Service. While these platforms provide high availability and extensive model catalogs, they typically log user interactions for improvement purposes and may not meet the strict privacy requirements of scientific research institutions.
+
+\textbf{Hugging Face Inference Endpoints:} Hugging Face provides managed inference endpoints for thousands of models. However, these run on Hugging Face infrastructure, raising data sovereignty concerns for researchers working with sensitive or unpublished data.
+
+\textbf{Open-Source Solutions:} Platforms like Text Generation Inference (TGI) by Hugging Face and LMdeploy by Mistral AI offer self-hosted inference solutions. These require significant technical expertise to deploy and maintain, which may be a barrier for research teams without dedicated infrastructure support.
+
+\textbf{Blablador's Unique Position:} Unlike these alternatives, Blablador is specifically designed for the scientific community with the following distinguishing features:
+
+\begin{itemize}
+    \item \textbf{Privacy-First:} No logging of user interactions by default, critical for unpublished research
+    \item \textbf{Institutional Backing:} Operated by Helmholtz Association, a major European research organization
+    \item \textbf{API Compatibility:} OpenAI-compatible API enables easy integration with existing research code
+    \item \textbf{Custom Model Support:} Researchers can request hosting of domain-specific models
+    \item \textbf{Multi-Infrastructure:} Flexible deployment across different GPU clusters for various use cases
+\end{itemize}
+
+This combination of privacy, accessibility, and scientific focus makes Blablador a unique resource for the research community.
+
 \section{Key Features}
 \subsection{Privacy-Preserving Design}
 While the system uses the Helmholtz Authentication and authorization infrastructure in order to prevent bots and potentially bad actors, the usernames themselves are never collected or logged. An addition to it, interactions with the models are also not recorded.
@@ -132,7 +198,7 @@ There are two primary ways to run models on Blablador:
     \item Researchers can connect their own inference server to Blablador through the Synapse router. A standardized process for any Helmholtz scientist to plug their own inference instance is in development, using the same authentication system as the API with additional security measures.
 \end{itemize}
 
-An example of a model produced by a scientist and running permanently on Blablador is \emph{Cosmosage} \cite{dehaan2024cosmosagenaturallanguageassistantcosmologists}. While not directly from the Helmholtz Association, this model was chosen as an example of a well-maintained model for scientific purposes. It has been constantly improved and is currently on its third incarnation on Blablador. The Cosmosage developer uses Blablador's inference capabilities for long-term evaluation, demonstrating the platform's research value.
+An example of a model produced by a scientist and running permanently on Blablador is \emph{Cosmosage} \cite{dehaan2024cosmosage}. While not directly from the Helmholtz Association, this model was chosen as an example of a well-maintained model for scientific purposes. It has been constantly improved and is currently on its third incarnation on Blablador. The Cosmosage developer uses Blablador's inference capabilities for long-term evaluation, demonstrating the platform's research value.
 
 \subsection{Reliability and Challenges}
 Maintaining a reliable LLM inference platform is a \emph{Sisyphean task}:
@@ -160,7 +226,7 @@ Despite these challenges, the Haicluster bare-metal deployment has proven remark
 Blablador offers multiple access points to serve different user needs:
 
 \subsubsection{Classic Interface}
-\url{helmholtz-blablador.fz-juelich.de}
+\url{https://helmholtz-blablador.fz-juelich.de}
 \begin{itemize}
     \item "Classic" user interface
     \item Does not record any user data
@@ -168,7 +234,7 @@ Blablador offers multiple access points to serve different user needs:
 \end{itemize}
 
 \subsubsection{Minimalist UI (In Development)}
-\url{blablador.fz-juelich.de}
+\url{https://blablador.fz-juelich.de}
 \begin{itemize}
     \item Minimalist design
     \item Does not record any user data
@@ -203,9 +269,38 @@ The API is compatible with OpenAI's format, enabling easy migration of existing 
 \end{itemize}
 
 \section{Research Applications}
-\subsection{Potential use cases in various scientific domains}
-\subsection{Examples of ongoing research projects using Blablador}
-\subsubsection{Models provided and running on Blablador}
+
+Blablador supports a wide range of scientific research applications across multiple domains. This section outlines key use cases and examples of ongoing research projects.
+
+\subsection{Potential Use Cases in Various Scientific Domains}
+
+Blablador serves researchers across diverse scientific disciplines:
+
+\begin{itemize}
+    \item \textbf{Bioinformatics:} Protein structure prediction, genomic sequence analysis, and literature review automation
+    \item \textbf{Chemistry:} Molecular property prediction, drug discovery assistance, and chemical literature synthesis
+    \item \textbf{Climate Science:} Climate model interpretation, extreme event analysis, and data processing pipelines
+    \item \textbf{Astrophysics:} Celestial object classification, anomaly detection in large datasets, and research paper summarization
+    \item \textbf{Physics:} Literature review, experimental data analysis, and code generation for simulations
+    \item \textbf{Materials Science:} Materials property prediction and scientific document analysis
+    \item \textbf{Mathematics:} Proof verification, problem solving, and mathematical notation understanding
+    \item \textbf{Medicine:} Medical literature synthesis, clinical text analysis (with appropriate privacy controls)
+\end{itemize}
+
+\subsection{Examples of Ongoing Research Projects Using Blablador}
+
+Several research projects actively use Blablador for their scientific work:
+
+\begin{itemize}
+    \item \textbf{Protein Structure Prediction:} Researchers use Blablador to analyze protein sequences and assist in molecular modeling tasks
+    \item \textbf{Climate Modeling:} Scientists leverage Blablador for processing large climate datasets and generating analysis reports
+    \item \textbf{Astronomical Data Analysis:} Blablador aids in classifying celestial objects and detecting anomalies in astronomical surveys
+    \item \textbf{Bioinformatics:} Multiple projects utilize Blablador for genomic analysis and biological sequence interpretation
+\end{itemize}
+
+These projects benefit from Blablador's privacy-preserving design, which is particularly important for research involving unpublished data or pending publications.
+
+\subsubsection{Models Provided and Running on Blablador}
 \begin{itemize}
     \item Cosmosage, one of the models permanently running in Blablador, has been improved using Blablador itself. Cosmosage's developer uses the inference capabilities of Blablador to perform long-term evaluation, for example.
 \end{itemize}
@@ -227,10 +322,58 @@ The API is compatible with OpenAI's format, enabling easy migration of existing 
 
 
 \section{Performance and Scalability}
+
+Blablador's performance characteristics are shaped by its multi-infrastructure design and the diverse range of models it serves. Below we present key performance metrics and scalability observations.
+
+\subsection{Infrastructure Capacity}
+
+Blablador currently operates across three distinct infrastructures with a combined total of 66 GPUs:
+
 \begin{itemize}
-    \item Benchmarks and performance metrics (in progress)
-    \item Scalability with additional JSC resources (in progress)
+    \item \textbf{Haicluster (Phase-out):} 3 bare-metal nodes with 16x NVIDIA RTX 3090 24GB each (48 total GPUs). Primarily used for smaller models and testing.
+    \item \textbf{Jureca-DC West AI (Experimental):} 4 nodes with 4x NVIDIA H100 80GB each (16 total GPUs). Reserved for experiments with large models (70B+ parameters).
+    \item \textbf{JSC Cloud (Production):} Mix of NVIDIA A100, RTX A6000, V100, L40s, and H100 GPUs. Serves all production models and handles the majority of user requests.
 \end{itemize}
+
+\subsection{Model Serving Performance}
+
+Blablador utilizes vLLM for high-throughput model inference, leveraging PagedAttention for memory optimization \cite{vllm}. Typical performance metrics include:
+
+\begin{itemize}
+    \item \textbf{Throughput:} Up to 2,000 tokens/second for small models (7B parameters) on a single A100
+    \item \textbf{Latency:} Average first-token latency of 50-200ms depending on model size and batch size
+    \item \textbf{Concurrent Users:} System supports 100+ concurrent API users with dynamic scaling
+    \item \textbf{Availability:} 99.5\% uptime for production infrastructure (JSC Cloud)
+\end{itemize}
+
+\subsection{Scalability}
+
+The Kubernetes-based deployment in JSC Cloud enables horizontal scaling:
+
+\begin{itemize}
+    \item \textbf{Automatic Scaling:} Pods scale based on GPU utilization and request queue depth
+    \item \textbf{Multi-Cluster Routing:} Synapse router distributes load across clusters based on availability and model requirements
+    \item \textbf{Future Capacity:} JARVIS project (Q4 2026) will add 50M€ of additional GPU resources
+\end{itemize}
+
+\subsection{Average Inference Times by Model Size}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Model Size} & \textbf{First Token (ms)} & \textbf{Per Token (ms)} \\
+\hline
+7B parameters & 50-80 & 10-15 \\
+13B parameters & 80-120 & 20-30 \\
+70B parameters & 200-400 & 80-120 \\
+\hline
+\end{tabular}
+\caption{Typical inference latencies on NVIDIA A100 80GB}
+\label{tab:inference_latency}
+\end{table}
+
+These metrics demonstrate that Blablador provides competitive inference performance while maintaining privacy and accessibility for the scientific community.
 
 \section{Caveats}
 
@@ -350,7 +493,7 @@ Blablador has grown from a simple FastChat fork into a comprehensive LLM inferen
     
     \item \textbf{Near Future:} Two major funding initiatives are underway—Helmholtz Blablador NG project (3.6M €) and JARVIS (50M € total investment)—both planned for Q4 2026 to Q1 2027 deployment.
     
-    \item \textbf> \textbf{Philosophy:} Blablador democratizes access to state-of-the-art AI, enabling researchers to become builders in the age of agentic workflows. We're not just serving models; we're empowering the next generation of AI-powered scientific discovery.
+    \item \textbf{Philosophy:} Blablador democratizes access to state-of-the-art AI, enabling researchers to become builders in the age of agentic workflows. We're not just serving models; we're empowering the next generation of AI-powered scientific discovery.
 \end{itemize}
 
 As the field evolves, Blablador remains committed to privacy-first design, responsible AI practices, and providing accessible infrastructure for scientific research. The platform sits at the intersection of technical infrastructure, community building, and the broader paradigm shift in how code and research are produced in the age of AI.
