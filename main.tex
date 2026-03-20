@@ -38,7 +38,7 @@
 \maketitle
 
 \begin{abstract}
-This paper introduces Blablador, a Large Language Model (LLM) inference server developed by the Helmholtz Foundation and operated at Forschungszentrum Jülich. Blablador is designed to meet the unique needs of the scientific community, offering privacy-preserving features, API accessibility, and support for custom models. The platform serves over 1,000 researchers annually across the Helmholtz Association, providing access to dozens of state-of-the-art models across 66 GPUs. In this article, we discuss its architecture, capabilities, and potential impact on AI research for all scientific domains. Our contributions include: (1) a privacy-first inference infrastructure that does not log user interactions, (2) an OpenAI-compatible API enabling seamless integration with existing research code, (3) support for custom domain-specific models, and (4) a cost-effective alternative to commercial LLM APIs, reducing operational costs by an estimated 70\% compared to commercial solutions.
+This paper introduces Blablador, a Large Language Model (LLM) inference server developed by the Helmholtz Foundation and operated at Forschungszentrum Jülich. Blablador is designed to meet the unique needs of the scientific community, offering privacy-preserving features, API accessibility, and support for custom models. The platform serves over 1,000 researchers annually across the Helmholtz Association, providing access to dozens of state-of-the-art models across 66 GPUs. In this article, we discuss its architecture, capabilities, and potential impact on AI research for all scientific domains. Our contributions include: (1) a privacy-first inference infrastructure that does not log user interactions, (2) an OpenAI-compatible API enabling seamless integration with existing research code, (3) support for custom domain-specific models, and (4) a cost-effective alternative to commercial LLM APIs.
 \end{abstract}
 
 \section{Introduction}
@@ -85,7 +85,7 @@ Blablador is accessible at \url{https://helmholtz-blablador.fz-juelich.de} (clas
     \item \textbf{Multi-Infrastructure Deployment:} Blablador operates across 66 GPUs on three different infrastructures:
     \begin{itemize}
         \item \textbf{Haicluster:} Since 2022, 3 bare-metal nodes with 16x RTX 3090 24GB, managed by Slurm + Easybuild + vLLM. Stable, but given the age, it's being phased out.
-        \item \textbf{Jureca-DC West AI:} 4 nodes with 4x H100 80GB each, used primarily for experiments with giant models. Production has been phased out here due to downtime issues.
+        \item \textbf{Jureca-DC West AI:} 4 nodes with 4x H100 80GB each, used primarily for experiments with giant models. Production has been phased out here, as a traditional supercomputer is not well-suited for LLM inference, but it's still available for experiments with large models.
         \item \textbf{JSC Cloud:} Kubernetes-based infrastructure with A100, RTX A6000, V100, L40s, and H100 GPUs. All relevant models run here, steadily improving in stability.
     \end{itemize}
     
@@ -95,7 +95,7 @@ Blablador is accessible at \url{https://helmholtz-blablador.fz-juelich.de} (clas
     
     \item \textbf{Open Source Heritage:} Originally forked from FastChat (LM-Sys) in 2022, Blablador today is maintained by a small team with active contributions back to the FastChat project and integration with Synapse, the Helmholtz AI router.
     
-    \item \textbf{Team:} Blablador today is developed and maintained by a small team of 2 persons (me and K.Rushchanskii) working on it, with hiring in progress. The main developer is Konstantin Rushchanskii (k.rushchanskii@fz-juelich.de).
+    \item \textbf{Team:} Blablador is developed and maintained by a small team of 2 persons - Alexandre Strube and Konstantin Z. Rushchanskii, with hiring in progress.
 \end{itemize}
 
 New web interfaces based on Open-WebUI and Librechat are in development, featuring RAG, file uploads, and multi-modal model support.
@@ -250,12 +250,12 @@ Blablador offers multiple access points to serve different user needs:
     \item Limited feature set but reliable and private
 \end{itemize}
 
-\subsubsection{Minimalist UI (In Development)}
+\subsubsection{Minimalist UI}
 \url{https://blablador.fz-juelich.de}
 \begin{itemize}
     \item Minimalist design
-    \item Does not record any user data
-    \item Not yet in production
+    \item All conversations are always temporary (no data recorded)
+    \item Now in production
 \end{itemize}
 
 \subsubsection{Feature-Rich UI (Staging)}
@@ -324,8 +324,8 @@ These projects benefit from Blablador's privacy-preserving design, which is part
 
 \subsubsection{Research using Blablador's endpoint}
 \begin{itemize}
-    \item Peter (protein structure prediction, molecular modeling)
-    \item Dima (climate modeling, astronomical data analysis)
+    \item Peter Steinbach (protein structure prediction, molecular modeling)
+    \item Dmitriy Kostunin (climate modeling, astronomical data analysis)
     \item Various researchers in bioinformatics, chemistry, and physics
 \end{itemize}
 
@@ -333,7 +333,7 @@ These projects benefit from Blablador's privacy-preserving design, which is part
 
 \subsection{Interaction with the community}
 
-    Most of the interactions with users are either done in-person, in scientific conferences, or via e-mail. Blablador has been shown in about a dozen conferences throughout Europe, and being well-regarded as a solution of great interest by the scientific community in General. 
+    Most of the interactions with users are either done in-person, in scientific conferences, or via e-mail. Blablador has been shown in approximately 30+ conferences throughout Europe, and being well-regarded as a solution of great interest by the scientific community in general. 
 
     This has resulted in both Blablador's source code being forked and adopted in other institutions, as well as similar solutions being developed in-house by some organizations. Many of those decide to go to their own development for diverse reasons; either as a matter of policy by the institution, or by the sheer desire of re-implementing things their own way.
 
@@ -348,7 +348,7 @@ Blablador currently operates across three distinct infrastructures with a combin
 
 \begin{itemize}
     \item \textbf{Haicluster (Phase-out):} 3 bare-metal nodes with 16x NVIDIA RTX 3090 24GB each (48 total GPUs). Primarily used for smaller models and testing.
-    \item \textbf{Jureca-DC West AI (Experimental):} 4 nodes with 4x NVIDIA H100 80GB each (16 total GPUs). Reserved for experiments with large models (70B+ parameters).
+    \item \textbf{Jureca-DC West AI (Experimental):} 4 nodes with 4x NVIDIA H100 80GB each (16 total GPUs). Reserved for experiments with large models (300B+ parameters).
     \item \textbf{JSC Cloud (Production):} Mix of NVIDIA A100, RTX A6000, V100, L40s, and H100 GPUs. Serves all production models and handles the majority of user requests.
 \end{itemize}
 
@@ -357,9 +357,9 @@ Blablador currently operates across three distinct infrastructures with a combin
 Blablador utilizes vLLM for high-throughput model inference, leveraging PagedAttention for memory optimization \cite{vllm}. Typical performance metrics include:
 
 \begin{itemize}
-    \item \textbf{Throughput:} Up to 2,000 tokens/second for small models (7B parameters) on a single A100
+    \item \textbf{Throughput:} Up to 15,000 tokens/second aggregate across all cloud models (measured via Kubernetes metrics, see Figure~\ref{fig:metrics})
     \item \textbf{Latency:} Average first-token latency of 50-200ms depending on model size and batch size
-    \item \textbf{Concurrent Users:} System supports 100+ concurrent API users with dynamic scaling
+    \item \textbf{Concurrent Users:} System supports 400+ concurrent API users with dynamic scaling
     \item \textbf{Availability:} 99.5\% uptime for production infrastructure (JSC Cloud)
 \end{itemize}
 
@@ -370,27 +370,24 @@ The Kubernetes-based deployment in JSC Cloud enables horizontal scaling:
 \begin{itemize}
     \item \textbf{Automatic Scaling:} Pods scale based on GPU utilization and request queue depth
     \item \textbf{Multi-Cluster Routing:} Synapse router distributes load across clusters based on availability and model requirements
-    \item \textbf{Future Capacity:} JARVIS project (Q4 2026) will add 50M€ of additional GPU resources
+    \item \textbf{Future Capacity:} JARVIS project (JUPITER Advanced Research Vehicle for Inference Services) will add a specialized inference module to JUPITER, funded with approximately €55M via the EuroHPC Joint Undertaking, German Federal Ministry of Education and Research, and state ministries \cite{jarvis}.
 \end{itemize}
 
-\subsection{Average Inference Times by Model Size}
-
-\begin{table}[h!]
+\begin{figure}[h!]
 \centering
-\begin{tabular}{|l|c|c|}
-\hline
-\textbf{Model Size} & \textbf{First Token (ms)} & \textbf{Per Token (ms)} \\
-\hline
-7B parameters & 50-80 & 10-15 \\
-13B parameters & 80-120 & 20-30 \\
-70B parameters & 200-400 & 80-120 \\
-\hline
-\end{tabular}
-\caption{Typical inference latencies on NVIDIA A100 80GB}
-\label{tab:inference_latency}
-\end{table}
+\includegraphics[width=0.9\linewidth]{metrics.jpg}
+\caption{Blablador aggregate throughput measured via Kubernetes: tokens per second over time across all cloud-deployed models.}
+\label{fig:metrics}
+\end{figure}
 
-These metrics demonstrate that Blablador provides competitive inference performance while maintaining privacy and accessibility for the scientific community.
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.9\linewidth]{metrics2.jpg}
+\caption{Blablador output tokens per second over time across all cloud-deployed models.}
+\label{fig:metrics2}
+\end{figure}
+
+\section{User Interface and Accessibility}
 
 \section{Caveats}
 
@@ -447,7 +444,7 @@ The past year has brought a paradigm shift in how code is produced:
     \item \textbf{API usage growth:} 30x increase since December 2025
 \end{itemize}
 
-Blablador is positioned at the center of this revolution. Our models serve as the engines powering coding agents (OpenClaw, OpenCode, n8n, Continue.dev). Every researcher with an API key becomes a potential builder, empowered by the infrastructure we provide.
+Our models serve as the engines powering coding agents (OpenClaw, OpenCode, n8n, Continue.dev). Every researcher with an API key becomes a potential builder, empowered by the infrastructure we provide.
 
 \subsection{Implications for Hiring and Team Building}
 The rise of agentic workflows has transformed what makes a successful engineer:
@@ -458,11 +455,6 @@ The rise of agentic workflows has transformed what makes a successful engineer:
     \item The 10x gap: Daily AI users produce 10x more code than "readers"
     \item The critical trait: \textbf{restlessness}—running toward change rather than away from it
 \end{itemize}
-
-As Aditya Agarwal (Ex-Facebook Search, Ex-CTO Dropbox) observed: "We will never write code by hand again. Something I was very good at is now free and abundant." The emotional arc involves both sadness for lost skills and "wild, reckless energy" for what's now possible. In 5 days of using Claude, he produced more code than in the previous 5 years.
-
-\subsection{What This Means for Blablador}
-Blablador democratizes access to the tools that enable the "builder's disposition" in researchers. We're not just serving models; we're enabling the next generation of builders. Our infrastructure empowers the 10x developers of tomorrow, putting LLMs directly into researchers' hands for both research and application development.
 
 \section{Future Directions}
 \subsection{Infrastructure Expansion: JARVIS}
@@ -487,7 +479,7 @@ A separate but complementary funding request is underway:
 
 \subsection{Planned Features and Improvements}
 \begin{itemize}
-    \item \textbf{Privacy-First Development:} Every new feature must prioritize user privacy. Germans are CRAZY about privacy, and this is non-negotiable.
+    \item \textbf{Privacy-First Development:} Every new feature must prioritize user privacy. This is particularly important given German privacy regulations, and is non-negotiable.
     
     \item \textbf{Document Processing:} Users want to feed full documents to Blablador's web interface. Solutions involving in-device OCR and RAG are being investigated to avoid uploading documents to servers while still enabling encrypted transmission of processed content.
     

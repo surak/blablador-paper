@@ -17,3 +17,6 @@
 
 # OS generated files
 .DS_Store
+
+# arXiv package (can be regenerated from main)
+arxiv_package/
