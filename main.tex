@@ -75,10 +75,10 @@ To address these challenges, the Helmholtz Foundation has developed Blablador, a
 
 \section{Motivation}
 
-Blablador is accessible at \url{https://helmholtz-blablador.fz-juelich.de} (classic interface) and \url{https://blablador.fz-juelich.de} (minimalist UI) to ensure democratic access by researchers across a variety of institutions and scientific domains. The system offers a unique set of features tailored to the needs of the research community:
+Blablador is accessible at \url{https://blablador.fz-juelich.de} to ensure democratic access by researchers across a variety of institutions and scientific domains. The system offers a unique set of features tailored to the needs of the research community:
 
 \begin{itemize}
-    \item \textbf{Privacy-First Approach:} Blablador does not record or store any user conversations or data on the classic or minimalist interfaces, ensuring the confidentiality of research queries and results. Newer UIs store data only if conversations are not marked as temporary.
+    \item \textbf{Privacy-First Approach:} Blablador does not record or store any user conversations or data on the minimalist interface, ensuring the confidentiality of research queries and results. Newer UIs store data only if conversations are not marked as temporary.
     
     \item \textbf{API Accessibility:} A robust API compatible with OpenAI's ecosystem allows seamless integration with existing research code and workflows, facilitating programmatic access to LLM capabilities. API usage has grown 30x since December 2025.
     
@@ -245,15 +245,8 @@ Blablador offers multiple access points to serve different user needs:
 \subsubsection{Classic Interface}
 \url{https://helmholtz-blablador.fz-juelich.de}
 \begin{itemize}
-    \item "Classic" user interface
-    \item Does not record any user data
-    \item Limited feature set but reliable and private
-\end{itemize}
-
-\subsubsection{Minimalist UI}
-\url{https://blablador.fz-juelich.de}
-\begin{itemize}
     \item Minimalist design
+    \item Fork of Librechat - no RAG, no file uploads, no database
     \item All conversations are always temporary (no data recorded)
     \item Now in production
 \end{itemize}
