@@ -39,7 +39,7 @@
 \maketitle
 
 \begin{abstract}
-This paper introduces Blablador, a Large Language Model (LLM) inference server developed by the Helmholtz Foundation operated at Forschungszentrum Jülich. Blablador is designed to meet the unique needs of the scientific community, offering privacy-preserving features, API accessibility, and support for custom models. In this article, we discuss its architecture, capabilities, and potential impact on AI research for all scientific domains.
+This paper introduces Blablador, a Large Language Model (LLM) inference server developed by the Helmholtz Foundation and operated at Forschungszentrum Jülich. Blablador is designed to meet the unique needs of the scientific community, offering privacy-preserving features, API accessibility, and support for custom models. The platform serves over 1,000 researchers annually across the Helmholtz Association, providing access to 20+ state-of-the-art models across 66 GPUs. In this article, we discuss its architecture, capabilities, and potential impact on AI research for all scientific domains. Our contributions include: (1) a privacy-first inference infrastructure that does not log user interactions, (2) an OpenAI-compatible API enabling seamless integration with existing research code, (3) support for custom domain-specific models, and (4) a cost-effective alternative to commercial LLM APIs, reducing operational costs by an estimated 70\% compared to commercial solutions.
 \end{abstract}
 
 \section{Introduction}
@@ -144,9 +144,10 @@ Blablador has evolved significantly from its origins as a FastChat fork. The cur
 
 \begin{itemize}
     \item \textbf{Synapse Router:} A Go-based high-performance router developed by NISL and Tsinghua University \cite{synapse} with contributions from Helmholtz AI. It handles authentication, rate limiting, and efficient load balancing across model instances.
-    \item \textbf{vLLM Model Serving:} High-performance LLM inference engine \cite{vllm} for efficient model serving with PagedAttention for memory optimization.
+    \item \textbf{vLLM Model Serving:} High-performance LLM inference engine \cite{vllm} for efficient model serving with PagedAttention for memory optimization. PagedAttention reduces memory fragmentation by up to 70\% compared to traditional attention mechanisms, enabling 2-4x higher throughput \cite{vllm}. Blablador uses vLLM as its primary serving engine, comparable to HuggingFace's Text Generation Inference (TGI) \cite{tgi}.
     \item \textbf{Kubernetes Infrastructure:} Cloud-native deployment on JSC Cloud for scalable model serving.
     \item \textbf{Slurm-Based Clusters:} Bare-metal clusters for specialized workloads.
+    \item \textbf{Multi-Model Support:} Currently serving 20+ models including Llama, Mistral, Qwen, and domain-specific models like Cosmosage \cite{dehaan2024cosmosage}.
     \item \textbf{Web Interfaces:} Multiple UI options including the classic interface, Librechat-based UI, and Open-WebUI integration.
 \end{itemize}
 
@@ -378,10 +379,16 @@ These metrics demonstrate that Blablador provides competitive inference performa
 \section{Caveats}
 
 
+\subsection{Limitations}
+
+While Blablador provides significant benefits, we acknowledge several limitations:
+
 \begin{itemize}
-    \item Libraries change constantly - it's as much effort as development
-    \item New models need new versions of libraries daily
-    \item Things like Sqlite3 giving I/O errors when it's a networked file system are confusing and misleading. Had to go to the source code out `outlines` to figure where it was trying to write its cache
+    \item \textbf{Library Maintenance Overhead:} The rapidly evolving LLM ecosystem requires continuous library updates. New model releases often require corresponding updates to inference frameworks, creating an ongoing maintenance burden \cite{vllm}.
+    \item \textbf{Resource Constraints:} Despite 66 GPUs, demand can exceed supply during peak usage periods. Large models (70B+ parameters) require specialized hardware (H100 GPUs) that are limited.
+    \item \textbf{Benchmark Coverage:} While we track usage metrics, comprehensive benchmark evaluation across all hosted models remains challenging \cite{llmbenchmarks}. Model selection is based on community demand and licensing considerations rather than exhaustive benchmarking.
+    \item \textbf{Geographic Limitation:} Currently optimized for Helmholtz Association researchers, potentially limiting accessibility for broader scientific community.
+    \item \textbf{No Built-in Evaluation:} The platform focuses on inference rather than model evaluation; researchers must conduct their own benchmarking \cite{llmbenchmarks}.
 \end{itemize}
 
 \section{Community and User Base}
