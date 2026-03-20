@@ -65,13 +65,15 @@ pdflatex main.tex
 If you use this work, please cite the paper:
 
 ```bibtex
-@article{strube2026blablador,
+@misc{strube2026blablador,
     title={Blablador: A Privacy-Focused LLM Inference Server for Scientific Research},
-    author={Strube, Alexandre and Kesselheim, Stefan and Steinbach, Peter},
-    journal={Helmholtz AI Research},
+    author={Strube, Alexandre and Kesselheim, Stefan and Steinbach, Peter and Rushchanskii, Konstantin Z. and von St. Vieth, Benedikt},
+    howpublished={\url{https://arxiv.org/abs/}},
     year={2026}
 }
 ```
+
+Note: This paper is available on arXiv.
 
 ## Authors
 
