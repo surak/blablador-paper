@@ -1,6 +1,7 @@
 \documentclass[10pt,conference]{IEEEtran}
 \usepackage{hyperref}
 \usepackage{tikz}
+\usepackage{todonotes}
 
 \usetikzlibrary{positioning}
 
@@ -23,7 +24,7 @@
     \IEEEauthorblockA{Helmholtz AI, Helmholtz-Zentrum Dresden-Rossendorf\\
     Email: p.steinbach@hzdr.de}
 \and
-    \IEEEauthorblockN{Konstantin Z. Rushchanskii}
+    \IEEEauthorblockN{Konstantin Rushchanskii}
     \IEEEauthorblockA{Helmholtz AI, Juelich Supercomputing Centre \\
     Email: k.rushchanskii@fz-juelich.de}
 \and
@@ -38,7 +39,7 @@
 \maketitle
 
 \begin{abstract}
-This paper introduces Blablador, a Large Language Model (LLM) inference server developed by the Helmholtz Foundation and operated at Forschungszentrum Jülich. Blablador is designed to meet the unique needs of the scientific community, offering privacy-preserving features, API accessibility, and support for custom models. The platform serves over 1,000 researchers annually across the Helmholtz Association, providing access to dozens of state-of-the-art models across 66 GPUs. In this article, we discuss its architecture, capabilities, and potential impact on AI research for all scientific domains. Our contributions include: (1) a privacy-first inference infrastructure that does not log user interactions, (2) an OpenAI-compatible API enabling seamless integration with existing research code, (3) support for custom domain-specific models, and (4) a cost-effective alternative to commercial LLM APIs, reducing operational costs by an estimated 70\% compared to commercial solutions.
+This paper introduces Blablador, a Large Language Model (LLM) inference server developed by the Helmholtz Foundation and operated at Forschungszentrum Jülich. Blablador is designed to meet the unique needs of the scientific community, offering privacy-preserving features, API accessibility, and support for custom models. The platform serves over 1,000 researchers annually across the Helmholtz Association, providing access to 20+ state-of-the-art models across 66 GPUs. In this article, we discuss its architecture, capabilities, and potential impact on AI research for all scientific domains. Our contributions include: (1) a privacy-first inference infrastructure that does not log user interactions, (2) an OpenAI-compatible API enabling seamless integration with existing research code, (3) support for custom domain-specific models, and (4) a cost-effective alternative to commercial LLM APIs, reducing operational costs by an estimated 70\% compared to commercial solutions.
 \end{abstract}
 
 \section{Introduction}
@@ -146,7 +147,7 @@ Blablador has evolved significantly from its origins as a FastChat fork. The cur
     \item \textbf{vLLM Model Serving:} High-performance LLM inference engine \cite{vllm} for efficient model serving with PagedAttention for memory optimization. PagedAttention reduces memory fragmentation by up to 70\% compared to traditional attention mechanisms, enabling 2-4x higher throughput \cite{vllm}. Blablador uses vLLM as its primary serving engine, comparable to HuggingFace's Text Generation Inference (TGI) \cite{tgi}.
     \item \textbf{Kubernetes Infrastructure:} Cloud-native deployment on JSC Cloud for scalable model serving.
     \item \textbf{Slurm-Based Clusters:} Bare-metal clusters for specialized workloads.
-    \item \textbf{Multi-Model Support:} Currently serving 15+ models including, Minimax, Qwen, and domain-specific models like Cosmosage \cite{dehaan2024cosmosage}.
+    \item \textbf{Multi-Model Support:} Currently serving 20+ models including Llama, Mistral, Qwen, and domain-specific models like Cosmosage \cite{dehaan2024cosmosage}.
     \item \textbf{Web Interfaces:} Multiple UI options including the classic interface, Librechat-based UI, and Open-WebUI integration.
 \end{itemize}
 
@@ -176,7 +177,7 @@ This combination of privacy, accessibility, and scientific focus makes Blablador
 
 \section{Key Features}
 \subsection{Privacy-Preserving Design}
-While the system uses the Helmholtz authentication and authorization infrastructure to prevent bots and potentially bad actors, usernames themselves are never collected or logged. Additionally, interactions with the models are also not recorded.
+While the system uses the Helmholtz Authentication and authorization infrastructure in order to prevent bots and potentially bad actors, the usernames themselves are never collected or logged. An addition to it, interactions with the models are also not recorded.
 This is important for users with unpublished research, or not-yet-granted patents, for example.
 
 For the API Endpoint server, an API Token must be generated at the Helmholtz Codebase's Gitlab Server\cite{helmholtzcodebase}. This ensures that only authorized users are able to access Blablador via API.
@@ -184,11 +185,10 @@ For the API Endpoint server, an API Token must be generated at the Helmholtz Cod
 \subsection{API Endpoint Server}
 Blablador provides a FastApi-based \cite{FastAPI} API, compatible with the one from OpenAI, so text-based codes using the OpenAI API can, for the most part, point the endpoint to Blablador's server, and use Blablador's resources instead of that from OpenAI. The main difference is that one should use the \emph{apiKey} with the API Token from Helmholtz Cloud.
 
-\subsection{Benefits for Programming and Research with LLMs}
-Blablador provides two primary benefits:
+\subsection{Benefits for programming and research with LLMs}
 \begin{itemize}
-    \item \textbf{As a tool:} Users can leverage Blablador for tasks such as question answering, text summarization, translation, and other natural language processing tasks.
-    \item \textbf{As a research platform:} Researchers can study LLMs' replies, reasoning patterns, and behavioral characteristics to advance scientific understanding of large language models.
+    \item Both as using blablador as a tool, like making questions, summarizing, translation, etc.
+    \item And using it to do research on LLMs' replies, reasoning etc
 \end{itemize}
 
 
@@ -221,23 +221,7 @@ Maintaining a reliable LLM inference platform is a \emph{Sisyphean task}:
     \end{itemize}
 \end{itemize}
 
-Despite these challenges, the Haicluster bare-metal deployment has proven remarkably stable, while the JSC Cloud Kubernetes infrastructure continues to improve in reliability. To ensure service quality, Blablador employs an automated watchdog system \cite{blablador-watchdog} that continuously monitors all hosted models by issuing test queries and verifying responses. This system enables rapid detection of model failures or performance degradation.
-
-\begin{figure}[h!]
-\centering
-\includegraphics[width=0.9\linewidth]{metrics_plots.png}
-\caption{Blablador Watchdog Metrics Dashboard: (a) Response time over time for each model, (b) Throughput (tokens/second) over time, (c) Success rate by model, (d) Average response time by model.}
-\label{fig:watchdog_metrics}
-\end{figure}
-
-The watchdog system tracks four key metrics across all hosted models, as visualized in Figure~\ref{fig:watchdog_metrics}:
-\begin{itemize}
-    \item \textbf{Response Time:} Measures elapsed time from request to complete response, enabling detection of slow or hung models.
-    \item \textbf{Throughput (Tokens/sec):} Tracks generation speed to identify performance degradation over time.
-    \item \textbf{Success Rate:} Calculates the percentage of successful queries per model, highlighting unreliable deployments.
-    \item \textbf{Average Response Time:} Provides baseline performance metrics for capacity planning.
-\end{itemize}
-By continuously monitoring these metrics, the operations team can proactively address issues before they impact users, maintaining the high availability required for scientific research workflows.
+Despite these challenges, the Haicluster bare-metal deployment has proven remarkably stable, while the JSC Cloud Kubernetes infrastructure continues to improve in reliability.
 
 \section{User Interface and Accessibility}
 Blablador offers multiple access points to serve different user needs:
@@ -505,10 +489,6 @@ Blablador aims to evolve from an LLM inference platform into a comprehensive AI 
     \item Balances innovation with responsible AI practices
     \item Adapts to the rapidly changing landscape of AI capabilities and paradigms
 \end{itemize}
-
-\section*{Acknowledgments}
-
-This work was supported by the Helmholtz Association under the Blablador NG project (pending funding approval) and the JARVIS (Jupiter Advanced Research Vehicle for Inference Services) initiative. We thank the Jülich Supercomputing Centre (JSC) for providing the computational infrastructure that makes Blablador possible. We also thank the Helmholtz AI team and the broader scientific community for their valuable feedback and continued use of the platform.
 
 \section{Conclusion}
 Blablador has grown from a simple FastChat fork into a comprehensive LLM inference platform serving the Helmholtz Association and beyond. Key points:

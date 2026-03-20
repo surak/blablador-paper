@@ -1,0 +1,6 @@
+Blablador: A Privacy-Focused LLM Inference Server for Scientific Research
+
+This package contains:
+- main.tex: Main LaTeX source
+- references.bib: Bibliography
+- main.pdf: Compiled PDF

@@ -78,3 +78,5 @@ If you use this work, please cite the paper:
 - **Alexandre Strube** - Helmholtz AI, Jülich Supercomputing Centre
 - **Stefan Kesselheim** - Helmholtz AI, Jülich Supercomputing Centre
 - **Peter Steinbach** - Helmholtz AI, Helmholtz-Zentrum Dresden-Rossendorf
+- **Konstantin Z. Rushchanskii** - Helmholtz AI, Jülich Supercomputing Centre
+- **Benedikt von St. Vieth** - Jülich Supercomputing Centre
